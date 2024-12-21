@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Application</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* التنسيقات تبقى كما هي */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 700px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #343a40;
+            font-size: 32px;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .question {
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+            color: #495057;
+        }
+
+        .question-number {
+            color: #000000;
+            font-weight: bold;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background-color: #e9ecef;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .option input {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .option label {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .correct {
+            background-color: #28a745 !important;
+            color: white;
+        }
+
+        .wrong {
+            background-color: #dc3545 !important;
+            color: white;
+        }
+
+        .unanswered {
+            background-color: #ffc107 !important;
+            color: black;
+        }
+
+        .correct-answer {
+            background-color: #28a745 !important;
+            color: white;
+            border: 2px solid #28a745;
+        }
+
+        button {
+            padding: 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 15px;
+            width: 100%;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        #shuffle-questions {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #shuffle-questions:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #shuffle-options {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #shuffle-options:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #show-result {
+            background-color: #28a745;
+            color: white;
+        }
+
+        #show-result:hover {
+            background-color: #218838;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #reset-quiz {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        #reset-quiz:hover {
+            background-color: #c82333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #result {
+            font-size: 18px;
+            margin-top: 20px;
+            text-align: center;
+            color: #343a40;
+        }
+
+        .floating-button-container {
+            position: fixed !important;
+            top: 80px !important;
+            right: 20px !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 9999 !important;
+        }
+
+        .floating-button {
+            background-color: #007bff;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .floating-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* تنسيقات لمربع الحوار المخصص */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .modal-button.yes {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .modal-button.no {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        /* تنسيقات إضافية للأزرار الجديدة */
+        .show-answer-button, .clear-button, .shuffle-options-button {
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .show-answer-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .show-answer-button:hover {
+            background-color: #218838;
+        }
+
+        .shuffle-options-button {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .shuffle-options-button:hover {
+            background-color: #0056b3;
+        }
+
+        .clear-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+
+        /* تنسيقات لأزرار الفلترة */
+        .filter-button {
+            padding: 12px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .filter-button.correct {
+            background-color: #28a745;
+        }
+
+        .filter-button.wrong {
+            background-color: #dc3545;
+        }
+
+        .filter-button.unanswered {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .filter-button.all {
+            background-color: #007bff;
+        }
+        
+        #jump-input {
+    width: 250px; /* عرض الحقل */
+    height: 20px; /* ارتفاع الحقل */
+    font-size: 16px; /* حجم النص داخل الحقل */
+    padding: 10px; /* المسافة الداخلية بين النص وحدود الحقل */
+    border-radius: 8px; /* حواف مستديرة */
+    border: 1px solid #ced4da; /* لون الحدود */
+}
+
+#jump-input:focus {
+    outline: none; /* إزالة الحدود الزرقاء الافتراضية */
+    border-color: #80bdff; /* تغيير لون الحدود عند التفاعل */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* إضافة تأثير ظل عند التفاعل */
+}
+
+        #search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0;
+            list-style-type: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        #search-results ul {
+            padding: 0;
+            list-style-type: none;
+            margin: 0;
+        }
+
+        #search-results li {
+            margin: 10px 0;
+        }
+
+        #search-results li button {
+            width: 100%;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            transition: background-color 0.3s;
+        }
+
+        #search-results li button:hover {
+            background-color: #e9ecef;
+        }
+
+        #search-results li button mark {
+            background-color: yellow;
+        }
+
+        /* تنسيقات مخصصة للفلترة بالفئات */
+        #filter-btn {
+            background-color: #007bff;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        #filter-btn:hover {
+            background-color: #0056b3;
+        }
+
+        #category-modal .category-modal-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        #category-modal .category-modal-buttons button {
+            margin: 0 5px;
+        }
+
+        #category-modal select {
+            width: 80%;
+            max-width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #category-modal select:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 3px rgba(0,123,255,.5);
+        }
+
+        #select-all-categories-btn {
+            padding:8px; 
+            font-size:14px; 
+            border-radius:5px; 
+            border:none; 
+            background-color:#007bff; 
+            color:#fff; 
+            cursor:pointer;
+        }
+        #select-all-categories-btn:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="quiz-container" id="quiz-container">
+        <h1>Mycology BEQs</h1>
+        <button id="filter-btn" onclick="openCategoryModal()">Filter Categories</button>
+        <p>Total Questions: <strong id="total-questions"></strong></p>
+        <form id="quiz-form">
+            <!-- الأسئلة ستُحقن هنا -->
+        </form>
+        <button id="shuffle-questions" onclick="shuffleQuestions()">Shuffle Questions</button>
+        <button id="shuffle-options" onclick="shuffleAllOptions()">Shuffle Options</button>
+        <button id="show-result" onclick="showResult()">Show Result</button>
+        <button id="reset-quiz" onclick="resetQuiz()">Reset Quiz</button>
+        <div id="result"></div>
+    </div>
+    
+    <!-- زر التمرير العائم -->
+    <div class="floating-button-container">
+        <button id="scroll-button" class="floating-button" onclick="handleScrollButton()" title="Scroll between answered and bottom">↓</button>
+        <button id="jump-button" class="floating-button" onclick="openJumpModal()" title="Search Questions">🔍</button>
+    </div>
+
+    <!-- مربع الحوار لإعادة الضبط -->
+    <div id="reset-modal" class="modal">
+        <div class="modal-content">
+            <p>Are you sure you want to reset the quiz?</p>
+            <button class="modal-button yes" onclick="confirmResetQuiz()">Yes</button>
+            <button class="modal-button no" onclick="closeResetModal()">No</button>
+        </div>
+    </div>
+
+    <!-- مربع حوار البحث -->
+    <div id="jump-modal" class="modal">
+        <div class="modal-content">
+            <p>Enter question number or search term:</p>
+            <input type="text" id="jump-input" placeholder="keyword">
+            <button class="modal-button" onclick="jumpToQuestion()">Go</button>
+            <button class="modal-button no" onclick="closeJumpModal()">Close</button>
+            <div id="search-results"></div>
+        </div>
+    </div>
+
+    <!-- مربع حوار اختيار الفئات -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content">
+            <p>Select Categories:</p>
+            <select id="category-filter" multiple></select>
+            <div class="category-modal-buttons">
+                <button id="select-all-categories-btn">Select/Unselect All</button>
+                <button class="modal-button yes" onclick="applyCategoryFilter()">OK</button>
+                <button class="modal-button no" onclick="closeCategoryModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+let quizData = [
+    { question: "<span style='color: darkred;'>February 2013 - Question 59</span> The following are true about cryptococcosis, except:", options: ["Meningitis is the most common clinical form of cryptococcosis in the central nervous system.", "Gatti varite Cryptococcus neoformans is able to cause disease in individuals without immune deficiency.", "Inhalation is the most common way of transferring fungi to the body.", "Serotype A (Biovariate Grubii) is rarely responsible for the disease."], answer: 3 },
+
+    { question: "<span style='color: darkred;'>February 2013 - Question 60</span> In epidemiology, animal is the source of infection in which one of the following fungal diseases?", options: ["Mucormycosis", "Aspergillus", "Dermatophytosis", "Chromoblastomycosis"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>February 2014 - Question 117</span> Which one is one of the most contributing factors in creation of invasive aspergillosis?", options: ["Neutropenia", "Lymphopenia", "Metabolic acidosis", "Trauma"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>February 2014 - Question 118</span> Which form of dermatophytosis is especially seen after adolescence?", options: ["Head", "Body", "Foot", "Hand"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>February (2) 2014 - Question 117</span> In the direct test of spinal fluid, a patient with AIDS has encountered yeast cells with a capsule. What is the disease of this person?", options: ["Candidiasis", "Aspergillosis", "Mucormycosis", "Cryptococcosis"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>February (2) 2014 - Question 118</span> What is the main defective body cell in widespread aspergillosis?", options: ["Neutrophils", "Lymphocytes", "Eosinophils", "Macrophages"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2014 - Question 67</span> In which age group is baldness more seen?", options: ["5-10", "20-30", "30-40", "40-60"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>September 2014 - Question 68</span> What is the most important predisposing factor for rhinocerebral mucormycosis?", options: ["Trauma", "Age", "Diabetes", "Use of corticosteroids"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>March 2015 - Question 88</span> Which of the fungal infections has a more acute clinical course?", options: ["Pulmonary Aspergillosis", "Rhinocerebral mucormycosis", "CNS cryptococcosis", "Sporotrichosis"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2015 - Question 89</span> What is the selected drug in the treatment of sporotrichosis?", options: ["Fluconazole", "Erythromycin", "Potassium iodide", "Amphotericin B"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>February 2016 - Question 117</span> Which one is one of the most contributing factors in the creation of invasive aspergillosis?", options: ["Neutropenia", "Lymphopenia", "Metabolic acidosis", "Trauma"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>February 2016 - Question 118</span> Which form of dermatophytosis is especially seen after adolescence?", options: ["Head", "Body", "Foot", "Hand"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>February (21) 2016 - Question 88</span> In which group does Tinea versicaler has less emerge?", options: ["Women", "Children", "Men", "Youngs"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February (21) 2016 - Question 89</span> In which form of dermatophytosis are contaminated hair curvature and presence of black dots seen?", options: ["Ectothrix", "Favus", "Endothrix", "Id reaction in the head"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>February (22) 2016 - Question 88</span> Often is created in the presence of AIDS?", options: ["Mucormycosis", "Pneumocytosis", "Aspergilloma", "Rhinosporidiosis"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>February (22) 2016 - Question 89</span> What is the cause of chronic dermatophytosis on the sole of the foot?", options: ["Trichophyton verocosome", "Microsporum genesis", "Microsporium chipsome", "Trichophyton rubrum"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2016 - Question 79</span> With which of the following fungal infections does botryomycosis have morphological similarity?", options: ["Dermatophytosis", "Aspergillosis", "Sporotrichosis", "Mycetoma"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2016 - Question 80</span> What is the type of aspergilloma in aspergillosis infection?", options: ["Nose and eyes", "Iatrogenic", "Pulmonary", "Central nervous system"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>August (22) 2016 - Question 79</span> Uncontrolled diabetes might be a susceptible factor for which infection?", options: ["Dermal aspergillosis", "Allergic aspergillosis", "Rhinocerebral mucormycosis", "Dermal mucormycosis"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August (22) 2016 - Question 80</span> How is nail scalp ringworm mostly exhibited?", options: ["White superficial onychomycosis", "Primary onychomycosis", "Lateral onychomycosis", "Distal subungual onychomycosis"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August (23) 2016 - Question 79</span> What is the most likely cause of fungal infections (Fungemia) in low birth weight infants treated with fat emulsion?", options: ["Malassezia", "Aspergillus", "Sporothrix", "Cryptococcus"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August (23) 2016 - Question 80</span> Patient with erythematous, wounded, and scaly lesions on both sides of the mouth has referred in. Which of the following options is a possible diagnosis?", options: ["Candidiasis", "Aspergillosis", "Sporotrichosis", "Cryptococcosis"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>August (25) 2016 - Question 105</span> In the direct test of head of a 13-year-old male, the presence of hyphae in the hair has been detected, and the light bulb of the Wood test has also shown green fluorescence. What is the most common clinical symptom and the cause of this complication?", options: ["Black mole - Trichophyton violaceum", "Black mole - Trichophyton Schoenleinii", "Scutula - Trichophyton violaceum", "Scutula - Trichophyton Schoenleinii"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August (25) 2016 - Question 106</span> Which option is right for Mycetoma?", options: ["With fistulae lesions accompanied by swelling and severe pain", "Disease caused by dual-form thermal fungi", "With multiple sinuses, granule, pus and secretions excretion", "Rapid blood circulation following inoculation of the agent to the body"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2016 - Question 79</span> In a patient with mycetoma, the reliable method for diagnosis of actinomycetoma from eumycetoma is:", options: ["Microscopic examination of granule", "Physical examination of patient", "X-ray of affected organ", "Performing of skin test"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2016 - Question 80</span> In which of the following fungal diseases, infection develops after inhalation of etiological agent?", options: ["Cryptococcosis", "Dermatophytosis", "Malasseziasis", "Maduromycosis"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>March 2017 - Question 79</span> Which of the following is usually endogenous in origin?", options: ["Aspergillosis", "Candidiasis", "Mucormycosis", "Cryptococcosis"], answer: 1 },
+    { question: "<span style='color: darkred;'>March 2017 - Question 80</span> Which of the following is a medically important encapsulated yeast?", options: ["Aspergillus niger", "Microsporum canis", "Malassezia furfur", "Cryptococcus neoformans"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2017 - Question 86</span> Which of the following sentences is correct in relation to ergosterol?", options: ["It is a cytoplasmic cell membrane compound in fungi and a target organelle for azole drugs.", "It is a cellular nuclear membrane compound and effective in pathogenesis of fungi.", "It is a cellular nuclear compound and a target organelle for azole drugs.", "It is a cytoplasmic cell membrane compound in fungi and effective in pathogenesis of fungi."], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>August 2017 - Question 87</span> Which fungi has a higher affinity for invasion to the central nervous system (CNS)?", options: ["*Geotrichum candidum*", "*Pneumocystis carinii*", "*Sporothrix schenckii*", "*Cryptococcus neoformans*"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2017 - Question 88</span> Which fungi is part of normal body flora, isolated from dairy and vegetative materials, and produces oral lesions like thrush?", options: ["*Geotrichum candidum*", "*Cryptococcus neoformans*", "*Saccharomyces cerevisiae*", "*Rhinosporidium seeberi*"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2019 - Question 79</span> A lumbar puncture (CSF specimen) is necessary for the definitive diagnosis of which of the following?", options: ["Mycetoma", "Mucormycosis", "Cryptococcosis", "Aspergillosis"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>September 2019 - Question 80</span> Which of the following infections is assumed to be associated with aerosol particles arisen from pigeon droppings?", options: ["Aspergillosis", "Mucormycosis", "Cryptococcosis", "Candidiasis"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2020 - Question 85</span> A neutropenic patient with persistent fever and respiratory signs was hospitalised in the ICU. His galactomannan test is positive with rising titer during one week follow-up. Which of the following fungal diseases is the patient suspected of?", options: ["Mucormycosis", "Candidiasis", "Aspergillosis", "Cryptococcosis"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 86</span> Which of the following dermatophytes is considered to be the most common agent of tinea cruris?", options: ["Microsporum canis", "Trichophyton rubrum", "Trichophyton schoenleinii", "Epidermophyton floccosum"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 87</span> In which of the following fungal diseases, the purulent and ulcerative cutaneous lesions are seen in lymphatic channels?", options: ["Sporotrichosis", "Chromoblastomycosis", "Dermatophytosis", "Pityriasis versicolor"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 88</span> Which of the following fungi can **not** cause lesions on mucosal membranes?", options: ["Geotrichum", "Malassezia", "Candida", "Histoplasma"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 89</span> Which of the following fungi is the most common agent of tinea unguium?", options: ["Candida albicans", "Epidermophyton floccosum", "Microsporum canis", "Trichophyton rubrum"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>March 2021 - Question 85</span> Esophagus candidiasis is common in all of the following patients EXCEPT those with ......... .", options: ["AIDS", "Diabetes", "Hemophilia", "Pemphigus"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 86</span> Griseofulvin CANNOT be used in the treatment of ......... .", options: ["Tinea capitis", "Tinea versicolor", "Tinea corporis", "Tinea unguium"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 87</span> Which statement is NOT true about mycetoma?", options: ["Many different types and species of fungi and bacteria are the pathogenic factors of the disease.", "Clinical signs in both types of mycetoma are almost similar.", "Bone lesions are not formed in mycetoma.", "Pseudallescheria is one of the bacterial agents of the disease."], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 88</span> All of the followings are true about oral candidiasis (pseudomembraneous type) EXCEPT ......... .", options: ["Humeral immune deficiency is a risk factor for this disease.", "Dry mouth and vitamins deficiency predisposes the person for the disease.", "AIDS patients with 100<CD4 are at risk of the disease.", "Chemotherapy and radiotherapy are the underlying conditions of the disease."], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 89</span> Wood’s light can be helpful in the diagnosis of all of the following conditions EXCEPT ......... .", options: ["Cutaneous candidiasis", "Tinea versicolor", "Alopecia", "Erythrasma"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>June 2021 - Question 85</span> A 12-years old child with chronic granulomatosis (CGD) presents with coughs containing sputum. Mycelium broken into angular arthroconidia is observed in the examination of a specimen of the sputum. Which of the following diseases is he/she likely to have?", options: ["Geotrichosis", "Candidiasis", "Cryptococcosis", "Dermatophytosis"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>June 2021 - Question 86</span> Which of the following fungal micro-organisms can be an underlying predisposing factor in seborrheic dermatitis?", options: ["Candida sp.", "Malassezia sp.", "Fungi of dermatophytes", "Fungi of saprobe"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>June 2021 - Question 87</span> In which of the following diseases, Griseofulvin is NOT prescribed for treatment purposes?", options: ["Tinea capitis", "Tinea corporis", "Tinea versicolor", "Tinea unguium"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>June 2021 - Question 88</span> Which of the following genera is the most prevalent cause of rhinocerebral mucormycose?", options: ["Mucor", "Rhizopus", "Rhizomucor", "Lichtheimia"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>June 2021 - Question 89</span> Which of the following Microsporum canis substances causes delayed type hypersensitivity reaction in animals?", options: ["Keratinase", "Polysaccharide", "Mannopeptide", "Glucan"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 85</span> Which of the following drugs is used for the treatment of vaginal candidiasis?", options: ["Erythromycin", "Griseofulvin", "Fluconazole", "Amphotericin B"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 86</span> What is the most common agent of dermatophytic chronic scaly type of tinea pedis?", options: ["Microsporum canis", "Trichophyton rubrum", "Epidermophyton floccosum", "Trichophyton verrucosum"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 87</span> What is the most common nosocomial infection in cancer and ICU wards?", options: ["Aspergillosis", "Candidiasis", "Fusariosis", "Zygomycosis"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 88</span> Which of the following mycoses is the most known acute infection?", options: ["Dermatophytosis", "Candidiasis", "Mucormycosis", "Automycosis"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 89</span> Which of the following mycoses is clinically similar to tumors?", options: ["Mycetoma", "Onychomycosis", "Dermatophytosis", "White piedra"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>November 2021 - Question 85</span> What is the most common entry route of sporotrichosis pathogen?", options: ["Eating contaminated food", "Drinking contaminated water", "Insect bites", "Skin scratch and injury"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>November 2021 - Question 86</span> Which of the following fungi causes tinea capitis (ectothrix) which is usually caused through contact with infected dog and cat?", options: ["Microsporum gypseum", "Epidermophyton floccosum", "Microsporum canis", "Trichophyton rubrum"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>November 2021 - Question 87</span> In microscopic examination of blood culture of a neutropenic patient, budding yeast cells have been noticed. Which of the following do suspect more?", options: ["Candida glabrata", "Rhizopus oryzae", "Aspergillus fumigatus", "Cryptococcus neoformans"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>November 2021 - Question 88</span> Which of the following clinical features of aspergillosis is manifested by recurrent hemoptysia?", options: ["Aspergilloma", "Allergic pulmonary", "Invasive pulmonary", "Disseminated"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>November 2021 - Question 89</span> Which of the following fungi is the causative agent of folliculitis in the chest and back of young adults?", options: ["Exophiala werneckii", "Malassezia ovalis", "Aspergillus niger", "Sporothrix schenckii"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>March 2022 - Question 85</span> Which organ is mostly affected by the spread of visceral cryptococcosis?", options: ["Prostate", "Adrenal glands", "Kidneys", "Lymph nodes"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2022 - Question 86</span> Which of the following statements is INCORRECT?", options: ["In pulmonary cryptococcosis, cavitation, fibrosis, calcification and pulmonary adenopathy are rare.", "Cryptococcosis mostly affects the lower parts of the lungs.", "Cryptococcosis mostly affects the upper parts of the lungs.", "Coin lesions are not very common in pulmonary cryptococcosis."], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2022 - Question 87</span> Invasive aspergillosis is less common in patients with …… .", options: ["AIDS", "Severe influenza", "Chronic granulomatosis", "COVID-19"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2022 - Question 88</span> Which of the following statements is INCORRECT about the Mucorales infection?", options: ["It is the most common cause of genitourinary tract infection.", "Patients with diabetes are most susceptible to the infection.", "Rhizopus spp. and Mucor spp. are the most common causes of the infection.", "The infection is caused by spores inhalation."], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2022 - Question 89</span> Which of the following is the specific sign of pneumocystis?", options: ["Fever and weight loss", "Dry cough with little or no sputum", "Fatigue and weakness", "Weight loss, weakness and dizziness"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>August 2022 - Question 85</span> Which of the following is correct about the type of hair invasion in Tinea capitis?", options: ["In favus, arthroconidia are located inside the hair shaft.", "The type of hair invasion depends on dermatophyte species.", "Black dot is one of the signs of ectothrix hair invasion.", "Scutula is one of the signs of endothrix hair invasion."], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>August 2022 - Question 86</span> Which of the following is NOT correct in sporotrichosis?", options: ["Oral saturated potassium iodide is a traditional treatment of cutaneous form.", "Due to the low number of organisms in the specimen, direct microscopic observation is rarely helpful.", "Cigarette shape buds are microscopic features in mycelial form.", "The disease is mainly localized and rarely diffused."], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>August 2022 - Question 87</span> In the direct microscopic examination of inflammatory lesions of the scalp, many budding yeast cells with thick wall and broad budding bases are observed. What is your presumptive diagnosis?", options: ["Tinea favosa (favus)", "Endothrix", "Seborrheic dermatitis", "Cutaneous candidiasis"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2022 - Question 88</span> Black necrotic lesions on the palate and nasal cavities, cerebral infection, and high mortality are the clinical features of ……… .", options: ["Aspergillosis", "Pityriasis versicolor", "Mucormycosis", "Cryptococcosis"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>August 2022 - Question 89</span> The tinea corporis is the dermatophytosis of the ……… .", options: ["groin", "foot", "nail", "body"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2023 - Question 85</span> Causative agent of which fungal infection isolates from Eucalyptus leaf?", options: ["Mucormycosis", "Piedra", "Candidiasis", "Cryptococcosis"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2023 - Question 86</span> What is the most acute fungal infection?", options: ["Invasive aspergillosis", "Mucormycosis", "Cryptococcal meningitis", "Invasive Candidiasis"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2023 - Question 87</span> Black fungi causes which kind of fungal infection?", options: ["Sporotrichosis", "Chromoblastomycosis", "Dermatophytosis", "Aspergillosis"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2023 - Question 88</span> Children are susceptible to which form of tinea?", options: ["Tinea Capitis", "Tinea pedis", "Tinea unguium", "Tinea cruris"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August 2023 - Question 89</span> Which fungal infection displays macules on the shoulders, neck and arms?", options: ["Erythrasma", "Piedra", "Tinea versicolor", "Trichomycosis axillaries"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>August 2024 - Question 81</span> Which of the following is correct about sporotrichosis?", options: ["Having swelling, fistula, and severe pain", "With multiple sinuses, granules, and secretions", "With multiple nodules along lymphatic channels", "The formation of sclerotic bodies in the tissue"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 82</span> Which of the following fungal elements can be seen in the direct examination of candidal onychomycosis?", options: ["Pseudomycelium, mycelium, macroconidia", "Pseudomycelium, mycelium, blastoconidia", "Pseudomycelium, arthroconidia, blastoconidia", "Mycelium, chlamydoconidia, blastoconidia"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 83</span> Which of the following is correct about the most common clinical symptoms of ectothrix and favus ringworm, respectively?", options: ["Black dot - scutula", "Scutula - black dot", "Black dot - gray patch", "Gray patch - scutula"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 84</span> In direct examination of the colored spots on the trunk of a patient, clusters of round yeast cells (blastoconidia) together with short and curved hyphae have been observed. Which option is correct about the disease and its cause?", options: ["Tinea versicolor - Malassezia", "Tinea nigra - Malassezia", "Tinea corporis - Dermatophyte", "Erythrasma - Corynebacterium"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 85</span> Griseofulvin is used in the treatment of which of the following diseases?", options: ["Tinea versicolor", "Tinea nigra", "Tinea capitis", "Trichomycosis"], answer: 2 }
+
+];
+
+
+
+let originalQuizData = []; // متغير لتخزين النسخة الأصلية من البيانات
+let originalCategories = []; // لتخزين الفئات الأصلية
+let categoryFilterSelected = []; // الفئات المختارة للتصفية
+
+const quizForm = document.getElementById('quiz-form');
+const resultElement = document.getElementById('result');
+const scrollButton = document.getElementById('scroll-button');
+let scrollState = 0;
+let lastAnsweredIndex = -1; // متغير لتتبع آخر سؤال تم الإجابة عليه
+
+function extractCategoryFromQuestion(questionHTML) {
+    const div = document.createElement('div');
+    div.innerHTML = questionHTML;
+    const span = div.querySelector('span[style*="darkred"]');
+    if (span) {
+        let text = span.textContent.trim();
+        const questionIndex = text.toLowerCase().indexOf('question');
+        if (questionIndex !== -1) {
+            text = text.substring(0, questionIndex).trim();
+            text = text.replace(/\-\s*$/, '').trim();
+        }
+        return text;
+    }
+    return '';
+}
+
+function initOriginalCategories() {
+    const cats = originalQuizData.map(q => extractCategoryFromQuestion(q.question)).filter(c => c);
+    originalCategories = [...new Set(cats)];
+}
+
+function loadQuiz() {
+    const fragment = document.createDocumentFragment();
+    quizData.forEach((data, index) => {
+        const questionContainer = document.createElement('div');
+        questionContainer.classList.add('question-container');
+        questionContainer.id = `question-container-${index}`;
+
+        const questionDiv = document.createElement('div');
+        questionDiv.classList.add('question');
+        questionDiv.id = `question-${index}`;
+
+        questionDiv.innerHTML = `<span class="question-number">${index + 1}.</span> ${data.question}`;
+        questionContainer.appendChild(questionDiv);
+
+        const optionsContainer = document.createElement('div');
+        optionsContainer.classList.add('options-container');
+        optionsContainer.id = `options-container-${index}`;
+
+        data.options.forEach((option, optionIndex) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.classList.add('option');
+            optionDiv.dataset.index = index;
+            optionDiv.dataset.optionIndex = optionIndex;
+
+            const radioInput = document.createElement('input');
+            radioInput.type = 'radio';
+            radioInput.id = `question-${index}-option-${optionIndex}`;
+            radioInput.name = `question-${index}`;
+            radioInput.value = optionIndex;
+            optionDiv.appendChild(radioInput);
+
+            const optionLabel = document.createElement('label');
+            optionLabel.textContent = option;
+            optionDiv.appendChild(optionLabel);
+
+            optionsContainer.appendChild(optionDiv);
+        });
+
+        questionContainer.appendChild(optionsContainer);
+
+        // إضافة الأزرار
+        const showAnswerButton = document.createElement('button');
+        showAnswerButton.type = 'button';
+        showAnswerButton.textContent = 'Show Answer';
+        showAnswerButton.classList.add('show-answer-button');
+        showAnswerButton.dataset.index = index;
+
+        showAnswerButton.addEventListener('click', () => {
+            showIndividualAnswer(index);
+        });
+
+        const shuffleOptionsButton = document.createElement('button');
+        shuffleOptionsButton.type = 'button';
+        shuffleOptionsButton.textContent = 'Shuffle Options';
+        shuffleOptionsButton.classList.add('shuffle-options-button');
+        shuffleOptionsButton.dataset.index = index;
+
+        shuffleOptionsButton.addEventListener('click', () => {
+            shuffleOptionsForQuestion(index);
+        });
+
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.textContent = 'Clear';
+        clearButton.classList.add('clear-button');
+        clearButton.dataset.index = index;
+
+        clearButton.addEventListener('click', () => {
+            clearIndividualQuestion(index);
+        });
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.appendChild(showAnswerButton);
+        buttonContainer.appendChild(shuffleOptionsButton);
+        buttonContainer.appendChild(clearButton);
+
+        questionContainer.appendChild(buttonContainer);
+
+        fragment.appendChild(questionContainer);
+    });
+
+    quizForm.innerHTML = '';
+    quizForm.appendChild(fragment);
+
+    document.getElementById('total-questions').textContent = quizData.length;
+}
+
+function storeOriginalQuizData() {
+    originalQuizData = JSON.parse(JSON.stringify(quizData));
+}
+
+// إضافة مستمع الحدث للنقر على الخيارات
+quizForm.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target.matches('.option, .option *')) {
+        let optionDiv = target.closest('.option');
+        const radioInput = optionDiv.querySelector('input[type="radio"]');
+        if (!radioInput.checked) {
+            radioInput.checked = true;
+        }
+        const index = parseInt(radioInput.name.split('-')[1]);
+        scrollState = 0;
+        lastAnsweredIndex = index; 
+        updateScrollButtonIcon();
+    }
+});
+
+function handleScrollButton() {
+    if (lastAnsweredIndex === -1) {
+        if (scrollState === 0 || scrollState === 2) {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            scrollState = 3;
+        } else if (scrollState === 3) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            scrollState = 2;
+        }
+    } else {
+        if (scrollState === 0) {
+            document.getElementById(`question-${lastAnsweredIndex}`).scrollIntoView({ behavior: 'smooth' });
+            scrollState = 1;
+        } else if (scrollState === 1) {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            scrollState = 2;
+        } else if (scrollState === 2) {
+            document.getElementById(`question-${lastAnsweredIndex}`).scrollIntoView({ behavior: 'smooth' });
+            scrollState = 3;
+        } else if (scrollState === 3) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            scrollState = 1;
+        }
+    }
+    updateScrollButtonIcon();
+}
+
+function updateScrollButtonIcon() {
+    if (lastAnsweredIndex === -1) {
+        if (scrollState === 0 || scrollState === 2) {
+            scrollButton.textContent = '↓';
+        } else if (scrollState === 3) {
+            scrollButton.textContent = '↑';
+        }
+    } else {
+        if (scrollState === 0) {
+            scrollButton.textContent = '⇄';
+        } else if (scrollState === 1) {
+            scrollButton.textContent = '↓';
+        } else if (scrollState === 2) {
+            scrollButton.textContent = '⇄';
+        } else if (scrollState === 3) {
+            scrollButton.textContent = '↑';
+        }
+    }
+}
+
+function shuffleOptionsForQuestion(index) {
+    const data = quizData[index];
+    const optionsContainer = document.getElementById(`options-container-${index}`);
+    const selectedInput = optionsContainer.querySelector('input:checked');
+    const selectedOptionIndex = selectedInput ? parseInt(selectedInput.value) : null;
+
+    const currentOptions = data.options.map((option, i) => ({ option, index: i }));
+    const shuffledOptions = shuffleArray(currentOptions);
+
+    data.options = shuffledOptions.map(o => o.option);
+    data.answer = shuffledOptions.findIndex(o => o.index === data.answer);
+
+    const fragment = document.createDocumentFragment();
+
+    data.options.forEach((option, optionIndex) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.classList.add('option');
+        optionDiv.dataset.index = index;
+        optionDiv.dataset.optionIndex = optionIndex;
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.id = `question-${index}-option-${optionIndex}`;
+        radioInput.name = `question-${index}`;
+        radioInput.value = optionIndex;
+
+        if (optionIndex === selectedOptionIndex) {
+            radioInput.checked = true;
+        }
+
+        optionDiv.appendChild(radioInput);
+
+        const optionLabel = document.createElement('label');
+        optionLabel.textContent = option;
+        optionDiv.appendChild(optionLabel);
+
+        fragment.appendChild(optionDiv);
+    });
+
+    optionsContainer.innerHTML = '';
+    optionsContainer.appendChild(fragment);
+
+    optionsContainer.querySelectorAll('.option').forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+    });
+}
+
+function shuffleAllOptions() {
+    quizData.forEach((_, index) => {
+        shuffleOptionsForQuestion(index);
+    });
+}
+
+function showIndividualAnswer(index) {
+    const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+    const options = document.querySelectorAll(`#options-container-${index} .option`);
+
+    options.forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+    });
+
+    requestAnimationFrame(() => {
+        options.forEach(optionDiv => {
+            const input = optionDiv.querySelector('input');
+            const optionIndex = parseInt(input.value);
+
+            if (optionIndex === quizData[index].answer) {
+                optionDiv.classList.add('correct-answer');
+            }
+
+            if (selectedOption) {
+                if (optionIndex === parseInt(selectedOption.value)) {
+                    if (optionIndex === quizData[index].answer) {
+                        optionDiv.classList.add('correct');
+                    } else {
+                        optionDiv.classList.add('wrong');
+                    }
+                }
+            } else {
+                optionDiv.classList.add('unanswered');
+            }
+        });
+    });
+}
+
+function clearIndividualQuestion(index) {
+    const options = document.querySelectorAll(`#options-container-${index} .option`);
+    options.forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+        const input = optionDiv.querySelector('input');
+        input.checked = false;
+    });
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function shuffleQuestions() {
+    const visibleIndexes = getVisibleQuestionIndexes();
+    let visibleQuestions = visibleIndexes.map(i => quizData[i]);
+    visibleQuestions = shuffleArray(visibleQuestions);
+
+    for (let v = 0; v < visibleIndexes.length; v++) {
+        quizData[visibleIndexes[v]] = visibleQuestions[v];
+    }
+
+    loadQuiz();
+    applyAllFilters();
+    scrollState = 0;
+    lastAnsweredIndex = -1; 
+    updateScrollButtonIcon();
+}
+
+function showResult() {
+    let score = 0;
+    let unanswered = 0;
+
+    requestAnimationFrame(() => {
+        const visibleIndexes = getVisibleQuestionIndexes();
+        visibleIndexes.forEach(index => {
+            const data = quizData[index];
+            const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+            const options = document.querySelectorAll(`#options-container-${index} .option`);
+
+            options.forEach(optionDiv => {
+                optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+            });
+
+            options.forEach(optionDiv => {
+                const input = optionDiv.querySelector('input');
+                const optionIndex = parseInt(input.value);
+
+                if (optionIndex === data.answer) {
+                    optionDiv.classList.add('correct-answer');
+                }
+            });
+
+            if (selectedOption) {
+                const selectedValue = parseInt(selectedOption.value);
+                if (selectedValue === data.answer) {
+                    score++;
+                    selectedOption.parentNode.classList.add('correct');
+                } else {
+                    selectedOption.parentNode.classList.add('wrong');
+                }
+            } else {
+                unanswered++;
+                options.forEach(optionDiv => {
+                    optionDiv.classList.add('unanswered');
+                });
+            }
+        });
+
+        const wrongAnswers = visibleIndexes.length - score - unanswered;
+
+        resultElement.innerHTML = `
+            <p>Your score is ${score} out of ${visibleIndexes.length}.</p>
+            <p>Correct Answers: ${score}</p>
+            <p>Wrong Answers: ${wrongAnswers}</p>
+            <p>Unanswered Questions: ${unanswered}</p>
+        `;
+
+        addFilterButtons();
+    });
+}
+
+function addFilterButtons() {
+    const oldContainer = document.getElementById('filter-container');
+    if (oldContainer) oldContainer.remove();
+
+    const filterContainer = document.createElement('div');
+    filterContainer.id = 'filter-container';
+
+    const showCorrectButton = document.createElement('button');
+    showCorrectButton.textContent = 'Show Correct Answers';
+    showCorrectButton.classList.add('filter-button', 'correct');
+    showCorrectButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'correct';
+        applyAllFilters();
+    });
+
+    const showWrongButton = document.createElement('button');
+    showWrongButton.textContent = 'Show Wrong Answers';
+    showWrongButton.classList.add('filter-button', 'wrong');
+    showWrongButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'wrong';
+        applyAllFilters();
+    });
+
+    const showUnansweredButton = document.createElement('button');
+    showUnansweredButton.textContent = 'Show Unanswered Questions';
+    showUnansweredButton.classList.add('filter-button', 'unanswered');
+    showUnansweredButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'unanswered';
+        applyAllFilters();
+    });
+
+    const showAllButton = document.createElement('button');
+    showAllButton.textContent = 'Show All Questions';
+    showAllButton.classList.add('filter-button', 'all');
+    showAllButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'all';
+        applyAllFilters();
+    });
+
+    filterContainer.appendChild(showCorrectButton);
+    filterContainer.appendChild(showWrongButton);
+    filterContainer.appendChild(showUnansweredButton);
+    filterContainer.appendChild(showAllButton);
+
+    resultElement.appendChild(filterContainer);
+}
+
+let currentCorrectnessFilter = 'all';
+
+function applyAllFilters() {
+    const selectedOptions = categoryFilterSelected || [];
+    quizData.forEach((data, index) => {
+        const questionContainer = document.getElementById(`question-container-${index}`);
+        const category = extractCategoryFromQuestion(data.question);
+        if (selectedOptions.length === 0 || selectedOptions.includes(category)) {
+            questionContainer.style.display = 'block';
+        } else {
+            questionContainer.style.display = 'none';
+        }
+    });
+
+    filterQuestionsCorrectness();
+    renumberVisibleQuestions();
+    const visibleCount = getVisibleQuestionIndexes().length;
+    document.getElementById('total-questions').textContent = visibleCount;
+}
+
+function filterQuestionsCorrectness() {
+    const visibleIndexes = getVisibleQuestionIndexesByCategory();
+    visibleIndexes.forEach(index => {
+        const questionContainer = document.getElementById(`question-container-${index}`);
+
+        let shouldDisplay = false;
+        const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+        const data = quizData[index];
+
+        if (currentCorrectnessFilter === 'correct') {
+            if (selectedOption && parseInt(selectedOption.value) === data.answer) {
+                shouldDisplay = true;
+            }
+        } else if (currentCorrectnessFilter === 'wrong') {
+            if (selectedOption && parseInt(selectedOption.value) !== data.answer) {
+                shouldDisplay = true;
+            }
+        } else if (currentCorrectnessFilter === 'unanswered') {
+            if (!selectedOption) {
+                shouldDisplay = true;
+            }
+        } else {
+            shouldDisplay = true;
+        }
+
+        questionContainer.style.display = shouldDisplay ? 'block' : 'none';
+    });
+}
+
+function renumberVisibleQuestions() {
+    const visibleIndexes = getVisibleQuestionIndexes();
+    visibleIndexes.forEach((index, i) => {
+        const questionNumberSpan = document.querySelector(`#question-container-${index} .question-number`);
+        if (questionNumberSpan) {
+            questionNumberSpan.textContent = (i + 1) + ".";
+        }
+    });
+}
+
+function getVisibleQuestionIndexes() {
+    const containers = document.querySelectorAll('.question-container');
+    const visibleIndexes = [];
+    containers.forEach((c, i) => {
+        if (c.style.display !== 'none') {
+            visibleIndexes.push(i);
+        }
+    });
+    return visibleIndexes;
+}
+
+function getVisibleQuestionIndexesByCategory() {
+    const selectedOptions = categoryFilterSelected || [];
+    const indexes = [];
+    quizData.forEach((data, i) => {
+        const category = extractCategoryFromQuestion(data.question);
+        if (selectedOptions.length === 0 || selectedOptions.includes(category)) {
+            indexes.push(i);
+        }
+    });
+    return indexes;
+}
+
+function openResetModal() {
+    document.getElementById('reset-modal').style.display = 'block';
+}
+
+function closeResetModal() {
+    document.getElementById('reset-modal').style.display = 'none';
+}
+
+function confirmResetQuiz() {
+    quizData = JSON.parse(JSON.stringify(originalQuizData));
+    loadQuiz();
+    requestAnimationFrame(() => {
+        resultElement.innerHTML = '';
+        scrollState = 0;
+        lastAnsweredIndex = -1; 
+        updateScrollButtonIcon();
+        categoryFilterSelected = [];
+        currentCorrectnessFilter = 'all';
+        applyAllFilters();
+        closeResetModal();
+    });
+}
+
+function resetQuiz() {
+    openResetModal();
+}
+
+function openJumpModal() {
+    document.getElementById('jump-modal').style.display = 'block';
+    document.getElementById('jump-input').focus();
+}
+
+function closeJumpModal() {
+    document.getElementById('jump-modal').style.display = 'none';
+    clearSearchResults();
+}
+
+function displaySearchResults(results) {
+    const searchResultsContainer = document.getElementById('search-results');
+    searchResultsContainer.innerHTML = '';
+
+    if (results.length === 0) {
+        const noResults = document.createElement('p');
+        noResults.textContent = 'No matching questions found.';
+        searchResultsContainer.appendChild(noResults);
+    } else {
+        const resultsList = document.createElement('ul');
+
+        results.forEach(result => {
+            const listItem = document.createElement('li');
+
+            const resultButton = document.createElement('button');
+            resultButton.innerHTML = `Question ${result.index + 1}: ${result.questionSnippet}`;
+            resultButton.addEventListener('click', () => {
+                document.getElementById(`question-${result.index}`).scrollIntoView({ behavior: 'smooth' });
+                closeJumpModal();
+            });
+
+            listItem.appendChild(resultButton);
+            resultsList.appendChild(listItem);
+        });
+
+        searchResultsContainer.appendChild(resultsList);
+    }
+}
+
+function clearSearchResults() {
+    const searchResultsContainer = document.getElementById('search-results');
+    searchResultsContainer.innerHTML = '';
+}
+
+function stripHTML(html) {
+    let div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+}
+
+function highlightTerm(text, term) {
+    const regex = new RegExp(`(${term})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+}
+
+function jumpToQuestion() {
+    const input = document.getElementById('jump-input').value.trim();
+    if (input === '') return;
+
+    if (!isNaN(input)) {
+        const num = parseInt(input);
+        const idx = num - 1;
+        const visibleIndexes = getVisibleQuestionIndexes();
+        if (visibleIndexes.includes(idx)) {
+            document.getElementById(`question-${idx}`).scrollIntoView({ behavior: 'smooth' });
+            closeJumpModal();
+        } else {
+            const results = [];
+            // Maybe it's hidden due to filters
+            if (idx >= 0 && idx < quizData.length) {
+                results.push({
+                    index: idx,
+                    questionSnippet: `Question ${num}`
+                });
+            }
+            displaySearchResults(results);
+        }
+    } else {
+        const visibleIndexes = getVisibleQuestionIndexes();
+        const results = [];
+        for (let j = 0; j < visibleIndexes.length; j++) {
+            const i = visibleIndexes[j];
+            const data = quizData[i];
+            const questionText = stripHTML(data.question);
+            if (questionText.toLowerCase().includes(input.toLowerCase())) {
+                results.push({
+                    index: i,
+                    questionSnippet: highlightTerm(questionText, input),
+                });
+            }
+        }
+        displaySearchResults(results);
+    }
+}
+
+function openCategoryModal() {
+    document.getElementById('category-modal').style.display = 'block';
+    updateCategoryFilter();
+}
+
+function closeCategoryModal() {
+    document.getElementById('category-modal').style.display = 'none';
+}
+
+function updateCategoryFilter() {
+    const categorySelect = document.getElementById('category-filter');
+    categorySelect.innerHTML = '';
+    originalCategories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        if (categoryFilterSelected.includes(cat)) {
+            option.selected = true;
+        }
+        categorySelect.appendChild(option);
+    });
+}
+
+document.getElementById('select-all-categories-btn').addEventListener('click', () => {
+    const categorySelect = document.getElementById('category-filter');
+    const allSelected = Array.from(categorySelect.options).every(option => option.selected);
+    for (let i = 0; i < categorySelect.options.length; i++) {
+        categorySelect.options[i].selected = !allSelected;
+    }
+});
+
+function applyCategoryFilter() {
+    const categorySelect = document.getElementById('category-filter');
+    categoryFilterSelected = Array.from(categorySelect.selectedOptions).map(o => o.value);
+    closeCategoryModal();
+    applyAllFilters();
+}
+
+// بدء التحميل
+storeOriginalQuizData();
+initOriginalCategories();
+loadQuiz();
+updateScrollButtonIcon();
+categoryFilterSelected = [];
+applyAllFilters();
+    </script>
+</body>
+</html>
